@@ -11,8 +11,7 @@ module.exports = {
   JWT_REFRESH_SECRET: 'secretRefreshWord',
   REFRESH_TOKEN_LIFETIME: '30d',
 
-  EMAIL: 'andriyy11@gmail.com',
-  EMAIL_PASS: 'emailGladiator1@',
+
 
   FORGOT_PASS_URL:'http://localhost:5000/auth/reset/',
 }

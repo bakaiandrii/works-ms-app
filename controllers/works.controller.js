@@ -60,9 +60,6 @@ module.exports = {
                 { match: { style } },
                 { match: { title } },
                 { match: { user_id } }],
-              // filter: [
-              //   { range: { date: { gte: dateGte, lte: dateLte } } }
-              // ],
             },
           },
           sort: [
