@@ -49,7 +49,7 @@ module.exports = {
     }
   },
   searchWork: async (req, res) => {
-    const { style, title, user_id, createdAt,updatedAt,date, dateGte, dateLte } = req.query;
+    const { style, title, user_id, createdAt, updatedAt, date } = req.query;
     try {
       let body = await elasticClient.client().search({
         index: 'works',
@@ -84,12 +84,47 @@ module.exports = {
       if (err) res.status(400).end(err.message);
     }
   },
+  searchWorkByBody: async (req, res) => {
+    const { search, date } = req.query;
+    try {
+      let body = await elasticClient.client().search({
+        index: 'works',
+        body: {
+          query: {
+            match: {
+              body: {
+                query: search,
+                minimum_should_match: 2
+              }
+            }
+          },
+          sort: [
+            { "date": { "order": date } }],
+        }
+      });
+
+      await connecMongooseService.connectionDB();
+      const countryCodes = await worksService.getCountryCode('workStyle');
+      if (body.hits.hits) {
+        for (const el of body.hits.hits) {
+          const styleCode = el._source.style;
+          el._source.style = countryCodes.find(el => el.code === styleCode).name;
+        }
+      }
+
+
+      res.json(body);
+    } catch (err) {
+      if (err) res.status(400).end(err.message);
+    }
+  },
   deleteWork: async (req, res) => {
     let { id } = req.params;
     try {
       await connecMongooseService.connectionDB();
-      let { user_id } = await worksService.findUserIdByWorkId(id);
-      if (!user_id) throw new Error('Members work do not found');
+      let user = await worksService.findUserIdByWorkId(id);
+      if (!user) throw new Error('Members work do not found');
+      const { user_id } = user;
       await worksService.findWorksByIdAndDelete(id);
       await elasticClient.client().delete({
         index: 'works',
